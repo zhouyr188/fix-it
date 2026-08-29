@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "gfj",
+    "name": "惯犯粉碎机",
     "slug": "gfj",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -10,16 +10,16 @@
       "supportsTablet": true
     },
     "android": {
-      "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
-        "foregroundImage": "./assets/android-icon-foreground.png",
-        "backgroundImage": "./assets/android-icon-background.png",
-        "monochromeImage": "./assets/android-icon-monochrome.png"
-      },
-      "predictiveBackGestureEnabled": false
+      "package": "com.zoey188.gfj"
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "extra": {
+      "eas": {
+        "projectId": "8a8394a1-07f3-44e1-b507-a390c22369d7"
+      }
+    },
+    "owner": "zoey188s-team"
   }
 }
