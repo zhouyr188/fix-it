@@ -68,6 +68,18 @@ export default function PracticeScreen({ onBack }: { onBack: () => void }) {
     setBusy(false);
   }
 
+  // ---- 第 3 步：讲原理（AI 讲解员）----
+  async function askExplain() {
+    setBusy(true); setExplain('');
+    try {
+      const e = await explainMistake(answer);
+      setExplain(e);
+    } catch (err) {
+      Alert.alert('讲解失败', '检查网络后再试一次');
+    }
+    setBusy(false);
+  }
+
   // ---- 界面 ----
   return (
     <ScrollView style={s.page}>
@@ -102,6 +114,14 @@ export default function PracticeScreen({ onBack }: { onBack: () => void }) {
 
       {/* 批改结果区 */}
       {result ? <Text style={s.result}>{result}</Text> : null}
+
+      {/* 讲解按钮：有批改结果才出现 */}
+      {result ? (
+        <TouchableOpacity style={s.explainBtn} onPress={askExplain} disabled={busy}>
+          <Text style={s.explainBtnText}>{busy ? '讲解中…' : '💡 为什么？'}</Text>
+        </TouchableOpacity>
+      ) : null}
+      {explain ? <Text style={s.explain}>{explain}</Text> : null}
     </ScrollView>
   );
 }

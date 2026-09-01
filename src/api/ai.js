@@ -52,7 +52,7 @@ export async function generateQuestion(trapType) {
     },
     {
       role: 'user',
-      content: `请出一道中译英题，雷点类型：${trapType}。难度：大学四级水平。`,
+      content: `请出一道中译英题，雷点类型：${trapType}。难度：对标六级到雅思 6.5 分——句子里要用上从句、被动或非谓语等复杂结构，词汇不许太幼稚，题材选社会、教育、科技类话题。`,
     },
   ];
   return askAI(messages);
@@ -81,5 +81,23 @@ export async function gradeAnswer(question, userAnswer) {
       content: `题目：${question}\n用户的翻译：${userAnswer}`,
     },
   ];
+  return askAI(messages);
+}
+
+export async function explainMistake(userAnswer) {
+  const messages = [
+    { role: 'system', 
+      content:
+        '你是英语讲解员。用户给你一句英文（可能是对的也可能是错的），你用中文回复，严格三行：\n'+
+        '第一行【问题】指出这句话哪里有问题；如果整句都对，就写它哪里写得好\n'+
+        '第二行【原理】用一句话讲清背后的规则，要让大学生能听懂\n'+
+        '第三行【最佳】给出最地道的写法，并附上一个值得学的漂亮词汇或地道表达,每行不超过 30 字，总共不超过 100 字。语气像学姐讲题，亲切直接。',
+  },   // 把上面那份说明书抄进来
+    { 
+      role: 'user', 
+      content: `用户的答案：${userAnswer}`,     
+    },
+  ];
+    
   return askAI(messages);
 }
