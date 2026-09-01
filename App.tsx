@@ -1,25 +1,42 @@
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity } from 'react-native';
+import { useState, useEffect } from 'react';
+import PracticeScreen from './src/screens/PracticeScreen';
+import { getMistakes } from './src/data/store';
 
 export default function App() {
+  const [screen, setScreen] = useState('home'); // 现在在哪个房间
+  const [mistakeCount, setMistakeCount] = useState(0);
+
+  // 每次回到首页，重新数一遍账本
+  useEffect(() => {
+    getMistakes().then((m) => setMistakeCount(m.length));
+  }, [screen]);
+
+  if (screen === 'practice') {
+    return <PracticeScreen onBack={() => setScreen('home')} />;
+  }
+
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>💪 惯犯粉碎机</Text>
+      <Text style={styles.title}>🔧 Fix It</Text>
       <Text style={styles.subtitle}>你的口袋英语批改员</Text>
 
-      <View style={styles.menuCard}>
+      <TouchableOpacity
+        style={styles.menuCard}
+        onPress={() => setScreen('practice')}>
         <Text style={styles.menuEmoji}>📝</Text>
         <Text style={styles.menuTitle}>交作业</Text>
         <Text style={styles.menuDesc}>写下英语，AI 帮你揪出错题</Text>
-      </View>
+      </TouchableOpacity>
 
       <View style={styles.menuCard}>
-        <Text style={styles.menuEmoji}>🔥</Text>
-        <Text style={styles.menuTitle}>今日粉碎</Text>
-        <Text style={styles.menuDesc}>3 分钟，粉碎你的惯犯错误</Text>
+        <Text style={styles.menuEmoji}>🗑</Text>
+        <Text style={styles.menuTitle}>错题档案（{mistakeCount}）</Text>
+        <Text style={styles.menuDesc}>你的惯犯都在这里，攒够三个毕业</Text>
       </View>
 
-      <Text style={styles.footer}>M1 · 2026 · by Zoey</Text>
+      <Text style={styles.footer}>M2 · 2026 · by Zoey</Text>
       <StatusBar style="auto" />
     </View>
   );
