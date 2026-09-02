@@ -8,14 +8,16 @@ import React, { useState } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ScrollView,
 } from 'react-native';
-import { generateQuestion, gradeAnswer } from '../api/ai';
+import { generateQuestion, gradeAnswer, explainMistake } from '../api/ai';
 import { addMistake } from '../data/store';
+
 
 export default function PracticeScreen({ onBack }: { onBack: () => void }) {
   const [question, setQuestion] = useState('');   // 当前题目
   const [answer, setAnswer] = useState('');       // 你的翻译
   const [result, setResult] = useState('');      // 批改结果
   const [busy, setBusy] = useState(false);       // AI 干活中，别催
+  const [explain,setExplain] = useState('');     //讲解内容
 
   // ---- 第 1 步：出题（随机埋一种雷）----
   async function newQuestion() {
@@ -127,6 +129,9 @@ export default function PracticeScreen({ onBack }: { onBack: () => void }) {
 }
 
 const s = StyleSheet.create({
+  explainBtn: { backgroundColor: '#4A90D9', borderRadius: 12, padding: 12, alignItems: 'center', marginBottom: 16 },
+  explainBtnText: { color: '#fff', fontSize: 15, fontWeight: '600' },
+  explain: { fontSize: 15, color: '#333', backgroundColor: '#FFF3E0', borderRadius: 12, padding: 16, lineHeight: 26 },
   page: { flex: 1, backgroundColor: '#FFF8F0', padding: 20 },
   backBtn: { alignSelf: 'flex-start', marginBottom: 8 },
   backText: { fontSize: 15, color: '#E85D3D' },

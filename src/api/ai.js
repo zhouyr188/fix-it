@@ -52,7 +52,7 @@ export async function generateQuestion(trapType) {
     },
     {
       role: 'user',
-      content: `请出一道中译英题，雷点类型：${trapType}。难度：对标六级到雅思 6.5 分——句子里要用上从句、被动或非谓语等复杂结构，词汇不许太幼稚，题材选社会、教育、科技类话题。`,
+      content: `请出一道中译英题，雷点类型：${trapType}。难度：对标六级到雅思5.5 分——句子里要选择性，间接性地用上从句、被动或非谓语等复杂结构，题材选社会、教育、科技类热门话题。`,
     },
   ];
   return askAI(messages);
@@ -71,6 +71,7 @@ export async function gradeAnswer(question, userAnswer) {
       role: 'system',
       content:
         '你是英语批改老师。用户提交了一段中译英翻译，请按以下格式批改：\n' +
+        '【评分】将用户答案根据A/B/C/D来进行打分\n'+
         '【改对版】把用户的错误全部修正的最小改写（只消灭错误，不追求漂亮）\n' +
         '【升级版】更地道、更漂亮的表达（在正确的基础上升级）\n' +
         '【惯犯类型】从 时态/直译/词形 中选一个最贴切的；如果用户全对，写「无」\n' +
