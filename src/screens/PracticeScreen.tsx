@@ -17,11 +17,12 @@ export default function PracticeScreen({ onBack }: { onBack: () => void }) {
   const [answer, setAnswer] = useState('');       // 你的翻译
   const [result, setResult] = useState('');      // 批改结果
   const [busy, setBusy] = useState(false);       // AI 干活中，别催
-  const [explain,setExplain] = useState('');     //讲解内容
+  const [explain,setExplain] = useState('');    //讲解内容
+  const [checked, setChecked] = useState(false);   //已检查
 
   // ---- 第 1 步：出题（随机埋一种雷）----
   async function newQuestion() {
-    setBusy(true); setResult(''); setAnswer('');
+    setBusy(true); setResult(''); setAnswer('');setChecked(false);
     const traps = ['时态', '直译', '词形'];
     const trap = traps[Math.floor(Math.random() * traps.length)];
     try {
@@ -101,18 +102,28 @@ export default function PracticeScreen({ onBack }: { onBack: () => void }) {
         style={s.input}
         placeholder="在这里写下你的英文翻译…"
         value={answer}
-        onChangeText={setAnswer}
+        onChangeText={(text) => { setAnswer(text); setChecked(false); }}
         multiline
       />
 
-      {/* 【你的位置 ②】四查自检：提交前弹出清单
-          提示：现在 submit 直接批改。你的任务是在这里加一个
-          Alert.alert('交卷前四查', '①单复数一致 ②词性 ③中式直译 ④拼写格式\n都过了吗？',
-            [取消, 确定→才真正调批改])  —— 你来写！ */}
+      
+        
+      {/* 检查完成按钮：答题框有字、且还没盖章时出现 */}
+      {answer.trim() !== '' && !checked ? (
+        <TouchableOpacity style={s.checkBtn} onPress={() => setChecked(true)}>
+          <Text style={s.btnText}>检查完成 ✓</Text>
+        </TouchableOpacity>
+      ) : null}
 
-      <TouchableOpacity style={s.btn} onPress={submit} disabled={busy}>
-        <Text style={s.btnText}>{busy ? '批改中…' : '提交批改'}</Text>
-      </TouchableOpacity>
+      {/* 提交批改按钮：盖了章才出现 */}
+      {checked ? (
+        <TouchableOpacity style={s.btn} onPress={submit} disabled={busy}>
+          <Text style={s.btnText}>{busy ? '批改中…' : '提交批改'}</Text>
+        </TouchableOpacity>
+      ) : null}
+
+      
+
 
       {/* 批改结果区 */}
       {result ? <Text style={s.result}>{result}</Text> : null}
@@ -130,6 +141,7 @@ export default function PracticeScreen({ onBack }: { onBack: () => void }) {
 
 const s = StyleSheet.create({
   explainBtn: { backgroundColor: '#4A90D9', borderRadius: 12, padding: 12, alignItems: 'center', marginBottom: 16 },
+  checkBtn: { backgroundColor: '#4A90D9', borderRadius: 12, padding: 14, alignItems: 'center', marginBottom: 16 },
   explainBtnText: { color: '#fff', fontSize: 15, fontWeight: '600' },
   explain: { fontSize: 15, color: '#333', backgroundColor: '#FFF3E0', borderRadius: 12, padding: 16, lineHeight: 26 },
   page: { flex: 1, backgroundColor: '#FFF8F0', padding: 20 },
