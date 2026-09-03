@@ -11,6 +11,17 @@ import {
 import { generateQuestion, gradeAnswer, explainMistake } from '../api/ai';
 import { addMistake } from '../data/store';
 
+function pickPart(text: string, name: string) {
+  const parts = text.split('【');
+  const block = parts.find((p) => p.startsWith(name + '】'));
+  return block ? block.slice(name.length + 1).trim() : '';
+}
+// 难度徽章字典：档位名 → 徽章文案（🌱 小苗 → 🌿 树叶 → 🌳 大树）
+const badgeText: { [k: string]: string } = {
+  基础: '🌱 基础',
+  中等: '🌿 中等',
+  进阶: '🌳 进阶',
+};
 
 export default function PracticeScreen({ onBack }: { onBack: () => void }) {
   const [question, setQuestion] = useState('');   // 当前题目
@@ -19,17 +30,23 @@ export default function PracticeScreen({ onBack }: { onBack: () => void }) {
   const [busy, setBusy] = useState(false);       // AI 干活中，别催
   const [explain,setExplain] = useState('');    //讲解内容
   const [checked, setChecked] = useState(false);   //已检查
+  const [err, setErr] = useState('');   //错误显示器：网页版 Alert 不弹，错误亮在这
+  const [level, setLevel] = useState('');        // 当前题难度档
 
   // ---- 第 1 步：出题（随机埋一种雷）----
   async function newQuestion() {
+    setErr('');   // 先擦掉上一轮的旧红字，别拿陈年旧账吓自己
+    const levels = ['基础', '基础', '基础', '基础', '基础', '中等', '中等', '中等', '进阶', '进阶'];
+    const lv = levels[Math.floor(Math.random() * levels.length)];
+    setLevel(lv);
     setBusy(true); setResult(''); setAnswer('');setChecked(false);
     const traps = ['时态', '直译', '词形'];
     const trap = traps[Math.floor(Math.random() * traps.length)];
     try {
-      const q = await generateQuestion(trap);
+      const q = await generateQuestion(trap,lv);
       setQuestion(q);
     } catch (e) {
-      Alert.alert('出题失败', '检查网络后再试一次');
+      setErr('出题失败：' + String(e));   // 网页版 Alert 不弹，把错误亮在屏幕上
     }
     setBusy(false);
   }
@@ -45,25 +62,17 @@ export default function PracticeScreen({ onBack }: { onBack: () => void }) {
       const g = await gradeAnswer(question, answer);
       setResult(g);
 
-      // 【你的位置 ①】解析批改结果，发现惯犯就归档
-      const parts = g.split('【');
-
-      const trap = parts[3].slice(parts[3].indexOf('】')+1);
-
-      if (trap !== '无'){
+    const trap = pickPart(g, '惯犯类型');
+   
+      if (trap !== '无' && trap !== '') {
         await addMistake({
           question: question,
           userAnswer: answer,
-          fixedVersion:parts[1].slice(parts[1].indexOf('】')+1),
-          upgradedVersion:parts[2].slice(parts[2].indexOf('】')+1),
-        trapType: trap,
+          fixedVersion: pickPart(g, '改对版'),
+          upgradedVersion: pickPart(g, '升级版'),
+          trapType: trap,
         });
       }
-      // 提示：g 里有【惯犯类型】xx，如果它不是「无」，
-      // 就调用 addMistake({question, userAnswer: answer,
-      //   fixedVersion: …, upgradedVersion: …, trapType: …})
-      // 从 g 里把【改对版】【升级版】后面的内容切出来（用 split('【')）
-      // —— 三四行代码，你来写！
 
     } catch (e) {
       Alert.alert('批改失败', '检查网络后再试一次');
@@ -95,8 +104,8 @@ export default function PracticeScreen({ onBack }: { onBack: () => void }) {
       <TouchableOpacity style={s.btn} onPress={newQuestion} disabled={busy}>
         <Text style={s.btnText}>{busy ? 'AI 出题中…' : '出新题'}</Text>
       </TouchableOpacity>
+      {question ? <Text style={s.levelBadge}>{badgeText[level]}</Text> : null}
       {question ? <Text style={s.question}>{question}</Text> : null}
-
       {/* 作答区 */}
       <TextInput
         style={s.input}
@@ -135,6 +144,9 @@ export default function PracticeScreen({ onBack }: { onBack: () => void }) {
         </TouchableOpacity>
       ) : null}
       {explain ? <Text style={s.explain}>{explain}</Text> : null}
+
+      {/* 错误显示器：AI 调用失败时红字亮出（网页版 Alert 不弹的补丁） */}
+      {err ? <Text style={s.errBox}>{err}</Text> : null}
     </ScrollView>
   );
 }
@@ -142,6 +154,8 @@ export default function PracticeScreen({ onBack }: { onBack: () => void }) {
 const s = StyleSheet.create({
   explainBtn: { backgroundColor: '#4A90D9', borderRadius: 12, padding: 12, alignItems: 'center', marginBottom: 16 },
   checkBtn: { backgroundColor: '#4A90D9', borderRadius: 12, padding: 14, alignItems: 'center', marginBottom: 16 },
+  levelBadge: { alignSelf: 'flex-start', backgroundColor: '#E8F5E9', color: '#2E7D32', fontSize: 13, fontWeight: '600', borderRadius: 8, paddingVertical: 4, paddingHorizontal: 10, marginBottom: 8 },
+  errBox: { backgroundColor: '#FFEBEE', color: '#C62828', fontSize: 14, borderRadius: 12, padding: 16, lineHeight: 24 },
   explainBtnText: { color: '#fff', fontSize: 15, fontWeight: '600' },
   explain: { fontSize: 15, color: '#333', backgroundColor: '#FFF3E0', borderRadius: 12, padding: 16, lineHeight: 26 },
   page: { flex: 1, backgroundColor: '#FFF8F0', padding: 20 },
