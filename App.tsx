@@ -2,11 +2,12 @@ import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, Text, View, TouchableOpacity } from 'react-native';
 import { useState, useEffect } from 'react';
 import PracticeScreen from './src/screens/PracticeScreen';
+import MistakeGalleryScreen from './src/screens/MistakeGalleryScreen';
 import { getMistakes } from './src/data/store';
 
 export default function App() {
   const [screen, setScreen] = useState('home'); // 现在在哪个房间
-  const [mistakeCount, setMistakeCount] = useState(0);
+  const [mistakeCount, setMistakeCount] = useState(0); // 抽屉里的惯犯人数
 
   // 每次回到首页，重新数一遍账本
   useEffect(() => {
@@ -15,6 +16,9 @@ export default function App() {
 
   if (screen === 'practice') {
     return <PracticeScreen onBack={() => setScreen('home')} />;
+  }
+  if (screen === 'gallery') {
+    return <MistakeGalleryScreen onBack={() => setScreen('home')} />;
   }
 
   return (
@@ -30,11 +34,13 @@ export default function App() {
         <Text style={styles.menuDesc}>写下英语，AI 帮你揪出错题</Text>
       </TouchableOpacity>
 
-      <View style={styles.menuCard}>
-        <Text style={styles.menuEmoji}>🗑</Text>
+      <TouchableOpacity
+        style={styles.menuCard}
+        onPress={() => setScreen('gallery')}>
+        <Text style={styles.menuEmoji}>🧬</Text>
         <Text style={styles.menuTitle}>错题档案（{mistakeCount}）</Text>
-        <Text style={styles.menuDesc}>你的惯犯都在这里，攒够三个毕业</Text>
-      </View>
+        <Text style={styles.menuDesc}>惯犯照片墙：按类型关押，连对三次毕业</Text>
+      </TouchableOpacity>
 
       <Text style={styles.footer}>M2 · 2026 · by Zoey</Text>
       <StatusBar style="auto" />

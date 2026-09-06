@@ -36,7 +36,7 @@ export default function PracticeScreen({ onBack }: { onBack: () => void }) {
   // ---- 第 1 步：出题（随机埋一种雷）----
   async function newQuestion() {
     setErr('');   // 先擦掉上一轮的旧红字，别拿陈年旧账吓自己
-    const levels = ['基础', '基础', '基础', '基础', '基础', '中等', '中等', '中等', '进阶', '进阶'];
+    const levels = ['基础', '基础', '中等', '中等', '中等', '中等', '中等', '进阶', '进阶', '进阶'];
     const lv = levels[Math.floor(Math.random() * levels.length)];
     setLevel(lv);
     setBusy(true); setResult(''); setAnswer('');setChecked(false);
