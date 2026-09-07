@@ -24,9 +24,10 @@ export default function MistakeGalleryScreen({ onBack }: { onBack: () => void })
       <Text style={s.title}>🧬 惯犯基因库</Text>
       <Text style={s.sub}>在押惯犯 {mistakes.length} 名 · 连对三次可毕业出库</Text>
 
-      {/* =================【你的位置】================= */}
-      {/* 三个展区将从这里长出来：时态区 / 直译区 / 词形区 */}
-      {/* 每个展区 = 区头（类型名+人数）+ 该类型的所有卡片 */}
+      <Text style={s.sub}>⏰时态区 (已错 {mistakes.filter((m) => m.trapType === '时态').length} 次)</Text>
+      <Text style={s.sub}>🔄直译区 (已错 {mistakes.filter((m) => m.trapType === '直译').length} 次)</Text>
+      <Text style={s.sub}>🔤词形区 (已错 {mistakes.filter((m) => m.trapType === '词形').length} 次)</Text>
+      
       {/* 弹药预告：mistakes.filter(筛类型).map(印卡片) —— 周三开工 */}
       {mistakes.length === 0 ? (
         <Text style={s.empty}>抽屉是空的——先去「交作业」攒几个惯犯吧</Text>
