@@ -33,6 +33,27 @@ export async function addMistake(mistake) {
   await AsyncStorage.setItem(MISTAKES_KEY, JSON.stringify(mistakes));
 }
 
+
+export async function passMistake(question){
+  const mistakes = await getMistakes();
+  const card = mistakes.find((x) => x.question === question);
+  card.passedCount += 1;
+  if(card.passedCount >= 3) {
+    const alive = mistakes.filter((x) => x.question !== question);
+
+    await AsyncStorage.setItem(MISTAKES_KEY, JSON.stringify(alive));
+
+    return;
+  }
+  await AsyncStorage.setItem(MISTAKES_KEY,JSON.stringify(mistakes));
+}
+
+export async function failMistake(question){
+  const mistakes = await getMistakes();
+  const card = mistakes.find((x) => x.question ===question)
+  card.passedCount = 0;
+  await AsyncStorage.setItem(MISTAKES_KEY,JSON.stringify(mistakes));
+}
 // ------------------------------------------------------------
 // 老规矩：写完读一遍验证没写坏（和打卡墙 L6 的习惯一样）
 // ------------------------------------------------------------
