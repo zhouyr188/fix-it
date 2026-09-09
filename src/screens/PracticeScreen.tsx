@@ -6,7 +6,7 @@
 
 import React, { useState } from 'react';
 import {
-  View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ScrollView,
+  View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView,
 } from 'react-native';
 import { generateQuestion, gradeAnswer, explainMistake } from '../api/ai';
 import { addMistake } from '../data/store';
@@ -54,7 +54,7 @@ export default function PracticeScreen({ onBack }: { onBack: () => void }) {
   // ---- 第 2 步：提交批改 ----
   async function submit() {
     if (!answer.trim()) {
-      Alert.alert('先写点什么', '空着交不了作业哦');
+      setErr("先写点什么——空着交不了作业哦");
       return;
     }
     setBusy(true);
@@ -75,7 +75,7 @@ export default function PracticeScreen({ onBack }: { onBack: () => void }) {
       }
 
     } catch (e) {
-      Alert.alert('批改失败', '检查网络后再试一次');
+      setErr("批改失败：检查网络后再试一次");
     }
     setBusy(false);
   }
@@ -87,7 +87,7 @@ export default function PracticeScreen({ onBack }: { onBack: () => void }) {
       const e = await explainMistake(answer);
       setExplain(e);
     } catch (err) {
-      Alert.alert('讲解失败', '检查网络后再试一次');
+      setErr('讲解失败：检查网络后再试一次');
     }
     setBusy(false);
   }
