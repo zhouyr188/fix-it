@@ -23,6 +23,13 @@ const badgeText: { [k: string]: string } = {
   进阶: '🌳 进阶',
 };
 
+// 难度规格表：和 ai.js 出题规格一一对应——ai.js 里的数字改了，这里要同步改
+const LEVEL_SPECS: { [k: string]: string } = {
+  基础: '单句 · ≤12 词',
+  中等: '1 从句 · 12-18 词',
+  进阶: '2 从句 · 18-25 词',
+};
+
 export default function PracticeScreen({ onBack }: { onBack: () => void }) {
   const [question, setQuestion] = useState('');   // 当前题目
   const [answer, setAnswer] = useState('');       // 你的翻译
@@ -32,14 +39,16 @@ export default function PracticeScreen({ onBack }: { onBack: () => void }) {
   const [checked, setChecked] = useState(false);   //已检查
   const [err, setErr] = useState('');   //错误显示器：网页版 Alert 不弹，错误亮在这
   const [level, setLevel] = useState('');        // 当前题难度档
+  const [specCheck, setSpecCheck] = useState(''); // 规格验收：词数机器数，从句数你自己数
 
   // ---- 第 1 步：出题（随机埋一种雷）----
   async function newQuestion() {
     setErr('');   // 先擦掉上一轮的旧红字，别拿陈年旧账吓自己
-    const levels = ['基础', '基础', '中等', '中等', '中等', '中等', '中等', '进阶', '进阶', '进阶'];
+    const levels = ['基础', '基础', '基础', '中等', '中等', '中等', '中等', '进阶', '进阶', '进阶'];
     const lv = levels[Math.floor(Math.random() * levels.length)];
     setLevel(lv);
     setBusy(true); setResult(''); setAnswer('');setChecked(false);
+    setSpecCheck('');   // 新题新规格，上一题的验收条撕掉
     const traps = ['时态', '直译', '词形'];
     const trap = traps[Math.floor(Math.random() * traps.length)];
     try {
@@ -61,6 +70,14 @@ export default function PracticeScreen({ onBack }: { onBack: () => void }) {
     try {
       const g = await gradeAnswer(question, answer);
       setResult(g);
+
+      // 规格验收：数「改对版」的英文单词数——词数交给机器数；
+      // 从句数留给你自己眼查（盯住 that/which/who/when/because/although/if 这些从句标志词）——认从句本身就是练习
+      const fixed = pickPart(g, '改对版');
+      if (fixed) {
+        const wordCount = fixed.split(/\s+/).filter((t) => /[A-Za-z0-9]/.test(t)).length; // 数字、括号提示也算 1 个词
+        setSpecCheck(`📏 规格验收｜${level}档要求：${LEVEL_SPECS[level] ?? ''}｜改对版共 ${wordCount} 词`);
+      }
 
     const trap = pickPart(g, '惯犯类型');
    
@@ -136,6 +153,7 @@ export default function PracticeScreen({ onBack }: { onBack: () => void }) {
 
       {/* 批改结果区 */}
       {result ? <Text style={s.result}>{result}</Text> : null}
+      {specCheck ? <Text style={s.specLine}>{specCheck}</Text> : null}
 
       {/* 讲解按钮：有批改结果才出现 */}
       {result ? (
@@ -167,4 +185,5 @@ const s = StyleSheet.create({
   question: { fontSize: 17, color: '#333', backgroundColor: '#fff', borderRadius: 12, padding: 16, marginBottom: 16, lineHeight: 26 },
   input: { backgroundColor: '#fff', borderRadius: 12, padding: 16, fontSize: 16, minHeight: 100, marginBottom: 16, textAlignVertical: 'top' },
   result: { fontSize: 15, color: '#333', backgroundColor: '#E8F5E9', borderRadius: 12, padding: 16, lineHeight: 24 },
+  specLine: { fontSize: 13, color: '#6A4C93', backgroundColor: '#F3E5F5', borderRadius: 8, padding: 10, marginBottom: 16 },
 });
