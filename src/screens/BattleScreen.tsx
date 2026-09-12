@@ -11,7 +11,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity, StyleSheet, Animated,
 } from 'react-native';
-import { gradeAnswer } from '../api/ai';
+import { gradeAnswer, generateQuestion } from '../api/ai';
 import { passMistake, failMistake } from '../data/store';
 
 // 和练习页同款的小剪刀：从批改结果里剪出【某栏】的内容
@@ -35,10 +35,32 @@ export default function BattleScreen({ monster, onBack }: { monster: any; onBack
   const [battleLog, setBattleLog] = useState(''); // 战斗播报（砍中/复活/消灭）
   const [hp, setHp] = useState(3 - (monster?.passedCount || 0)); // 现在的血
   const [won, setWon] = useState(false);        // 是否已消灭
+  const [q, setQ] = useState('');               // 当前战题——每刀换新句（Zoey 09-12：同类型不同句，拒绝默写三遍）
+  const [genBusy, setGenBusy] = useState(false); // 新题出厂中
 
   // ---- Animated 主演：血条的宽度（数字 0-3，映射成 0%-100%）----
   // useRef 是「跨回合记忆盒」：重渲染不会把它洗掉，动画值才连续
   const hpAnim = useRef(new Animated.Value(3 - (monster?.passedCount || 0))).current;
+
+  // ---- 出一道本类型新题：怪兽是「错误类型」的化身，每刀都是新句子 ----
+  // 难度抽签和练习页同款 3:4:3
+  async function newRound() {
+    setQ(''); setGenBusy(true);
+    const levels = ['基础', '基础', '基础', '中等', '中等', '中等', '中等', '进阶', '进阶', '进阶'];
+    const lv = levels[Math.floor(Math.random() * levels.length)];
+    try {
+      const fresh = await generateQuestion(monster.trapType, lv);
+      setQ(fresh);
+    } catch (e) {
+      setBattleLog('出题失败：点下方按钮重试');
+    }
+    setGenBusy(false);
+  }
+
+  // 进战斗房先出第一题
+  useEffect(() => {
+    if (monster) newRound();
+  }, []);
 
   // 打完收工回基因库（消灭后自动走）
   useEffect(() => {
@@ -47,12 +69,14 @@ export default function BattleScreen({ monster, onBack }: { monster: any; onBack
     return () => clearTimeout(t); // 组件卸载时撤掉闹钟，防止对着空气放电
   }, [won]);
 
-  // ---- 挥刀：交答案 → AI 批改 → 按战果记账+放动画 ----
+  // ---- 挥刀：交答案 → AI 批改 → 按战果记账+放动画 → 换新句再战 ----
   async function strike() {
-    if (!answer.trim() || busy) return;
+    if (busy || genBusy) return;
+    if (!q) { newRound(); return; } // 没题时按钮就是「再出一题」
+    if (!answer.trim()) return;
     setBusy(true);
     try {
-      const g = await gradeAnswer(monster.question, answer);
+      const g = await gradeAnswer(q, answer);
       setResult(g);
       const trap = pickPart(g, '惯犯类型');
 
@@ -70,12 +94,16 @@ export default function BattleScreen({ monster, onBack }: { monster: any; onBack
           Animated.timing(hpAnim, { toValue: left, duration: 600, useNativeDriver: false }).start();
           setBattleLog(`⚔️ 砍中一刀！还剩 ${left} 滴血`);
         }
+        setAnswer('');  // 清空旧答案
+        newRound();     // 下一刀换新句子（趁看批改的工夫后台出题）
       } else {
         // ---- 答错，怪兽满血复活 ----
         await failMistake(monster.question);
         setHp(3);
         Animated.spring(hpAnim, { toValue: 3, friction: 4, useNativeDriver: false }).start(); // 弹一下=复活特效
         setBattleLog('💥 答错——怪兽满血复活！连对清零，从头再战');
+        setAnswer('');
+        newRound();     // 复活后也换新句子再战
       }
     } catch (e) {
       setBattleLog('批改失败：检查网络后再挥一刀');
@@ -106,8 +134,10 @@ export default function BattleScreen({ monster, onBack }: { monster: any; onBack
         {battleLog ? <Text style={s.log}>{battleLog}</Text> : null}
       </View>
 
-      {/* 题目区 */}
-      <Text style={s.question}>{monster?.question}</Text>
+      {/* 题目区：当前的战斗题（每刀换新句）；出身题当怪物档案小字展示 */}
+      <Text style={s.qLabel}>📜 本场战题 · {monster?.trapType}型 · 每刀换新句</Text>
+      <Text style={s.question}>{genBusy && !q ? '⚔️ 出题中…' : q}</Text>
+      <Text style={s.origin}>出身题：{monster?.question}</Text>
 
       {/* 作答区 */}
       <TextInput
@@ -118,7 +148,7 @@ export default function BattleScreen({ monster, onBack }: { monster: any; onBack
         multiline
       />
       <TouchableOpacity style={s.btn} onPress={strike} disabled={busy}>
-        <Text style={s.btnText}>{busy ? '挥刀中…' : '⚔️ 挥刀'}</Text>
+        <Text style={s.btnText}>{busy ? '批改中…' : (!q ? '🔄 再出一题' : '⚔️ 挥刀')}</Text>
       </TouchableOpacity>
 
       {/* 批改结果 */}
@@ -137,7 +167,9 @@ const s = StyleSheet.create({
   barShell: { width: '100%', height: 16, backgroundColor: '#0F3460', borderRadius: 8, overflow: 'hidden', flexDirection: 'row' },
   barFill: { height: 16, backgroundColor: '#E94560', borderRadius: 8 },
   log: { color: '#FFD56B', fontSize: 15, fontWeight: '600', marginTop: 12, textAlign: 'center' },
-  question: { fontSize: 17, color: '#fff', backgroundColor: '#16213E', borderRadius: 12, padding: 16, marginBottom: 16, lineHeight: 26 },
+  question: { fontSize: 17, color: '#fff', backgroundColor: '#16213E', borderRadius: 12, padding: 16, marginBottom: 8, lineHeight: 26 },
+  qLabel: { fontSize: 12, color: '#8899BB', marginBottom: 6 },
+  origin: { fontSize: 12, color: '#667799', marginBottom: 16, lineHeight: 18 },
   input: { backgroundColor: '#fff', borderRadius: 12, padding: 16, fontSize: 16, minHeight: 100, marginBottom: 16, textAlignVertical: 'top' },
   btn: { backgroundColor: '#E94560', borderRadius: 12, padding: 14, alignItems: 'center', marginBottom: 16 },
   btnText: { color: '#fff', fontSize: 16, fontWeight: '600' },
