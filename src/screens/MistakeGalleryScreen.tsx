@@ -8,7 +8,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
 import { getMistakes } from '../data/store';
 
-export default function MistakeGalleryScreen({ onBack }: { onBack: () => void }) {
+export default function MistakeGalleryScreen({ onBack, onBattle }: { onBack: () => void; onBattle: (m: any) => void }) {
   const [mistakes, setMistakes] = useState<any[]>([]); // 从抽屉搬出来的全部错题
 
   // 进屋先开抽屉：把档案整个搬到墙上（数人数也靠它）
@@ -33,6 +33,9 @@ export default function MistakeGalleryScreen({ onBack }: { onBack: () => void })
           <Text>你写的：{m.userAnswer}</Text>
           <Text style={s.fix}>✅ 改对版：{m.fixedVersion}</Text>
           <Text style={s.count}>连对 {m.passedCount}/3 次毕业</Text>
+          <TouchableOpacity style={s.battleBtn} onPress={() => onBattle(m)}>
+            <Text style={s.battleBtnText}>⚔️ 挑战这头怪兽</Text>
+          </TouchableOpacity>
         </View>
       ))}
 
@@ -44,6 +47,9 @@ export default function MistakeGalleryScreen({ onBack }: { onBack: () => void })
           <Text>你写的：{m.userAnswer}</Text>
           <Text style={s.fix}>✅ 改对版：{m.fixedVersion}</Text>
           <Text style={s.count}>连对 {m.passedCount}/3 次毕业</Text>
+          <TouchableOpacity style={s.battleBtn} onPress={() => onBattle(m)}>
+            <Text style={s.battleBtnText}>⚔️ 挑战这头怪兽</Text>
+          </TouchableOpacity>
         </View>
       ))}
 
@@ -55,6 +61,9 @@ export default function MistakeGalleryScreen({ onBack }: { onBack: () => void })
           <Text>你写的：{m.userAnswer}</Text>
           <Text style={s.fix}>✅ 改对版：{m.fixedVersion}</Text>
           <Text style={s.count}>连对 {m.passedCount}/3 次毕业</Text>
+          <TouchableOpacity style={s.battleBtn} onPress={() => onBattle(m)}>
+            <Text style={s.battleBtnText}>⚔️ 挑战这头怪兽</Text>
+          </TouchableOpacity>
         </View>
       ))}
 
@@ -80,4 +89,6 @@ const s = StyleSheet.create({
   count: { fontSize: 12, color: '#E85D3D', marginTop: 6 },
   q: { fontSize: 14, color: '#555555', marginBottom: 4 },
   fix: { fontSize: 14, color: '#2E7D32', marginTop: 4 },
+  battleBtn: { alignSelf: 'flex-start', backgroundColor: '#E85D3D', borderRadius: 8, paddingVertical: 6, paddingHorizontal: 12, marginTop: 10 },
+  battleBtnText: { color: '#fff', fontSize: 13, fontWeight: '600' },
 });

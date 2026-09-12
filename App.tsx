@@ -3,22 +3,43 @@ import { StyleSheet, Text, View, TouchableOpacity } from 'react-native';
 import { useState, useEffect } from 'react';
 import PracticeScreen from './src/screens/PracticeScreen';
 import MistakeGalleryScreen from './src/screens/MistakeGalleryScreen';
+import BattleScreen from './src/screens/BattleScreen';
+import SplashScreen from './src/screens/SplashScreen';
 import { getMistakes } from './src/data/store';
 
 export default function App() {
   const [screen, setScreen] = useState('home'); // 现在在哪个房间
+  const [booted, setBooted] = useState(false);  // 开场动画演完了吗
   const [mistakeCount, setMistakeCount] = useState(0); // 抽屉里的惯犯人数
+  const [battleTarget, setBattleTarget] = useState(null); // 要挑战的怪兽档案（带着它进战斗房）
 
   // 每次回到首页，重新数一遍账本
   useEffect(() => {
     getMistakes().then((m) => setMistakeCount(m.length));
   }, [screen]);
 
+  if (!booted) {
+    return <SplashScreen onDone={() => setBooted(true)} />;
+  }
+
   if (screen === 'practice') {
     return <PracticeScreen onBack={() => setScreen('home')} />;
   }
   if (screen === 'gallery') {
-    return <MistakeGalleryScreen onBack={() => setScreen('home')} />;
+    return (
+      <MistakeGalleryScreen
+        onBack={() => setScreen('home')}
+        onBattle={(m) => { setBattleTarget(m); setScreen('battle'); }}
+      />
+    );
+  }
+  if (screen === 'battle') {
+    return (
+      <BattleScreen
+        monster={battleTarget}
+        onBack={() => setScreen('gallery')}
+      />
+    );
   }
 
   return (

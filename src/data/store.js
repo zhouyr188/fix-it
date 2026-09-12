@@ -43,9 +43,10 @@ export async function passMistake(question){
 
     await AsyncStorage.setItem(MISTAKES_KEY, JSON.stringify(alive));
 
-    return;
+    return 'eliminated'; // 战报：怪兽被消灭，出库
   }
   await AsyncStorage.setItem(MISTAKES_KEY,JSON.stringify(mistakes));
+  return 'hit'; // 战报：砍中一刀，还剩 (3 - passedCount) 滴血
 }
 
 export async function failMistake(question){
@@ -53,6 +54,7 @@ export async function failMistake(question){
   const card = mistakes.find((x) => x.question ===question)
   card.passedCount = 0;
   await AsyncStorage.setItem(MISTAKES_KEY,JSON.stringify(mistakes));
+  return 'revved'; // 战报：答错，怪兽满血复活
 }
 // ------------------------------------------------------------
 // 老规矩：写完读一遍验证没写坏（和打卡墙 L6 的习惯一样）
