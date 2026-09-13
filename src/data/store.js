@@ -34,19 +34,14 @@ export async function addMistake(mistake) {
 }
 
 
+// ------------------------------------------------------------
+// 砍中毕业：被答对的卡片当场出库（方案三：一刀一个，无连对概念）
+// ------------------------------------------------------------
 export async function passMistake(question){
   const mistakes = await getMistakes();
-  const card = mistakes.find((x) => x.question === question);
-  card.passedCount += 1;
-  if(card.passedCount >= 3) {
-    const alive = mistakes.filter((x) => x.question !== question);
-
-    await AsyncStorage.setItem(MISTAKES_KEY, JSON.stringify(alive));
-
-    return 'eliminated'; // 战报：怪兽被消灭，出库
-  }
-  await AsyncStorage.setItem(MISTAKES_KEY,JSON.stringify(mistakes));
-  return 'hit'; // 战报：砍中一刀，还剩 (3 - passedCount) 滴血
+  const alive = mistakes.filter((x) => x.question !== question);
+  await AsyncStorage.setItem(MISTAKES_KEY, JSON.stringify(alive));
+  return 'eliminated'; // 战报：这头怪兽出库
 }
 
 export async function failMistake(question){

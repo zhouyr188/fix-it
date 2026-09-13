@@ -32,7 +32,7 @@ export default function MistakeGalleryScreen({ onBack, onBattle }: { onBack: () 
           <Text style={s.q}>题目：{m.question}</Text>
           <Text>你写的：{m.userAnswer}</Text>
           <Text style={s.fix}>✅ 改对版：{m.fixedVersion}</Text>
-          <Text style={s.count}>连对 {m.passedCount}/3 次毕业</Text>
+          <Text style={s.count}>在押</Text>
           <TouchableOpacity style={s.battleBtn} onPress={() => onBattle(m)}>
             <Text style={s.battleBtnText}>⚔️ 挑战这头怪兽</Text>
           </TouchableOpacity>
@@ -46,7 +46,7 @@ export default function MistakeGalleryScreen({ onBack, onBattle }: { onBack: () 
           <Text style={s.q}>题目：{m.question}</Text>
           <Text>你写的：{m.userAnswer}</Text>
           <Text style={s.fix}>✅ 改对版：{m.fixedVersion}</Text>
-          <Text style={s.count}>连对 {m.passedCount}/3 次毕业</Text>
+          <Text style={s.count}>在押</Text>
           <TouchableOpacity style={s.battleBtn} onPress={() => onBattle(m)}>
             <Text style={s.battleBtnText}>⚔️ 挑战这头怪兽</Text>
           </TouchableOpacity>
@@ -60,7 +60,7 @@ export default function MistakeGalleryScreen({ onBack, onBattle }: { onBack: () 
           <Text style={s.q}>题目：{m.question}</Text>
           <Text>你写的：{m.userAnswer}</Text>
           <Text style={s.fix}>✅ 改对版：{m.fixedVersion}</Text>
-          <Text style={s.count}>连对 {m.passedCount}/3 次毕业</Text>
+          <Text style={s.count}>在押</Text>
           <TouchableOpacity style={s.battleBtn} onPress={() => onBattle(m)}>
             <Text style={s.battleBtnText}>⚔️ 挑战这头怪兽</Text>
           </TouchableOpacity>

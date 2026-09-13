@@ -34,6 +34,7 @@ export default function BattleScreen({ monster, onBack }: { monster: any; onBack
   const [result, setResult] = useState('');     // 批改全文
   const [battleLog, setBattleLog] = useState(''); // 战斗播报（砍中/复活/消灭）
   const [hp, setHp] = useState(3 - (monster?.passedCount || 0)); // 现在的血
+  const [nestTotal, setNestTotal] = useState(0); // 巢穴总数：该类型在押卡片数（方案三：一刀一个+清巢血条）
   const [won, setWon] = useState(false);        // 是否已消灭
   const [q, setQ] = useState('');               // 当前战题——从错题库抽（Zoey 09-12：弹药=自己的错题，不造新题）
   const [pool, setPool] = useState<any[]>([]);  // 弹药库：同类型的其他错题
@@ -63,6 +64,17 @@ export default function BattleScreen({ monster, onBack }: { monster: any; onBack
     if (monster) newRound();
   }, []);
 
+  // 进房数巢：该类型还押着几头（血条=剩余/总数，方案三）
+  useEffect(() => {
+    if (!monster) return;
+    getMistakes().then((all) => {
+      const left = all.filter((m: any) => m.trapType === monster.trapType).length;
+      setNestTotal(left);
+      setHp(left);
+      hpAnim.setValue(left); // 演员先站到起始位
+    });
+  }, []);
+
   // 打完收工回基因库（消灭后自动走）
   useEffect(() => {
     if (!won) return;
@@ -82,29 +94,28 @@ export default function BattleScreen({ monster, onBack }: { monster: any; onBack
       const trap = pickPart(g, '惯犯类型');
 
       if (trap === '无' || trap === '') {
-        // ---- 砍中了！让账本记账，看战报 ----
-        const report = await passMistake(monster.question);
-        if (report === 'eliminated') {
+        // ---- 砍中了！被答对的那张卡当场毕业出库（账记在 q 头上）----
+        const report = await passMistake(q);
+        const all = await getMistakes();
+        const left = all.filter((m: any) => m.trapType === monster.trapType).length;
+        setNestTotal((t) => t || left + 1); // 首刀时补记总数
+        if (left === 0) {
           setHp(0);
           Animated.timing(hpAnim, { toValue: 0, duration: 600, useNativeDriver: false }).start();
-          setBattleLog('🏆 消灭！这头怪兽出库，再也不见！');
+          setBattleLog('🏆 全巢清空！' + monster.trapType + '类惯犯一锅端，撒花！');
           setWon(true);
         } else {
-          const left = hp - 1;
           setHp(left);
-          Animated.timing(hpAnim, { toValue: left, duration: 600, useNativeDriver: false }).start();
-          setBattleLog(`⚔️ 砍中一刀！还剩 ${left} 滴血`);
+          Animated.timing(hpAnim, { toValue: left, duration: 700, useNativeDriver: false }).start();
+          setBattleLog(`⚔️ 消灭一头！${monster.trapType}巢还剩 ${left} 头`);
         }
         setAnswer('');  // 清空旧答案
         newRound();     // 下一刀换新句子（趁看批改的工夫后台出题）
       } else {
-        // ---- 答错，怪兽满血复活 ----
-        await failMistake(monster.question);
-        setHp(3);
-        Animated.spring(hpAnim, { toValue: 3, friction: 4, useNativeDriver: false }).start(); // 弹一下=复活特效
-        setBattleLog('💥 答错——怪兽满血复活！连对清零，从头再战');
+        // ---- 答错：这头怪没死，但巢不惩罚进度（方案三：无满血复活）----
+        setBattleLog('💥 答错——这头怪兽还在，换下一发弹药再战');
         setAnswer('');
-        newRound();     // 复活后也换新句子再战
+        newRound();     // 换新句子再战
       }
     } catch (e) {
       setBattleLog('批改失败：检查网络后再挥一刀');
@@ -114,7 +125,7 @@ export default function BattleScreen({ monster, onBack }: { monster: any; onBack
 
   // 血条宽度：0-3 滴血 → 0%-100%（Animated 的翻译官 interpolate）
   const barWidth = hpAnim.interpolate({
-    inputRange: [0, 3],
+    inputRange: [0, Math.max(nestTotal, 1)],
     outputRange: ['0%', '100%'],
   });
 
@@ -127,7 +138,7 @@ export default function BattleScreen({ monster, onBack }: { monster: any; onBack
       {/* 怪兽登场区 */}
       <View style={s.monsterStage}>
         <Text style={s.face}>{won ? '💨' : MONSTER_FACE[monster?.trapType] || '👾'}</Text>
-        <Text style={s.monsterName}>{monster?.trapType}惯犯怪兽 · 血量 {hp}/3</Text>
+        <Text style={s.monsterName}>{monster?.trapType}巢 · 剩 {hp} 头{nestTotal ? ` / 共 ${nestTotal} 头` : ''}</Text>
         {/* 血条外框（灰底）+ 内条（红色，宽度被 Animated 遥控） */}
         <View style={s.barShell}>
           <Animated.View style={[s.barFill, { width: barWidth }]} />
