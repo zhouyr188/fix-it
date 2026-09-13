@@ -11,8 +11,8 @@ import React, { useState, useRef, useEffect } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity, StyleSheet, Animated,
 } from 'react-native';
-import { gradeAnswer, generateQuestion } from '../api/ai';
-import { passMistake, failMistake } from '../data/store';
+import { gradeAnswer } from '../api/ai';
+import { passMistake, failMistake, getMistakes } from '../data/store';
 
 // 和练习页同款的小剪刀：从批改结果里剪出【某栏】的内容
 function pickPart(text: string, name: string) {
@@ -35,26 +35,27 @@ export default function BattleScreen({ monster, onBack }: { monster: any; onBack
   const [battleLog, setBattleLog] = useState(''); // 战斗播报（砍中/复活/消灭）
   const [hp, setHp] = useState(3 - (monster?.passedCount || 0)); // 现在的血
   const [won, setWon] = useState(false);        // 是否已消灭
-  const [q, setQ] = useState('');               // 当前战题——每刀换新句（Zoey 09-12：同类型不同句，拒绝默写三遍）
-  const [genBusy, setGenBusy] = useState(false); // 新题出厂中
+  const [q, setQ] = useState('');               // 当前战题——从错题库抽（Zoey 09-12：弹药=自己的错题，不造新题）
+  const [pool, setPool] = useState<any[]>([]);  // 弹药库：同类型的其他错题
 
   // ---- Animated 主演：血条的宽度（数字 0-3，映射成 0%-100%）----
   // useRef 是「跨回合记忆盒」：重渲染不会把它洗掉，动画值才连续
   const hpAnim = useRef(new Animated.Value(3 - (monster?.passedCount || 0))).current;
 
-  // ---- 出一道本类型新题：怪兽是「错误类型」的化身，每刀都是新句子 ----
-  // 难度抽签和练习页同款 3:4:3
+  // ---- 抽下一道战题：弹药=错题库里同类型的其他题目（Zoey 09-12：不造新题）----
+  // 规则：优先打「别的」错题；全打完一轮了，最后一发回到出身题
+  // 抽过的排到队尾循环用，不重复啃同一句
   async function newRound() {
-    setQ(''); setGenBusy(true);
-    const levels = ['基础', '基础', '基础', '中等', '中等', '中等', '中等', '进阶', '进阶', '进阶'];
-    const lv = levels[Math.floor(Math.random() * levels.length)];
-    try {
-      const fresh = await generateQuestion(monster.trapType, lv);
-      setQ(fresh);
-    } catch (e) {
-      setBattleLog('出题失败：点下方按钮重试');
+    let p = pool;
+    if (p.length === 0) {
+      // 进房第一次：从错题库搬同类弹药（不含出身题——它压轴）
+      const all = await getMistakes();
+      const others = all.filter((m: any) => m.trapType === monster.trapType && m.question !== monster.question);
+      p = others.length > 0 ? others : [monster]; // 孤品怪兽：库里没别的同类题，出身题自己顶上
     }
-    setGenBusy(false);
+    const next = p[0];
+    setQ(next.question);
+    setPool([...p.slice(1), next]); // 用过的排到队尾，循环发放
   }
 
   // 进战斗房先出第一题
@@ -71,8 +72,8 @@ export default function BattleScreen({ monster, onBack }: { monster: any; onBack
 
   // ---- 挥刀：交答案 → AI 批改 → 按战果记账+放动画 → 换新句再战 ----
   async function strike() {
-    if (busy || genBusy) return;
-    if (!q) { newRound(); return; } // 没题时按钮就是「再出一题」
+    if (busy) return;
+    if (!q) { newRound(); return; } // 没题时按钮就是「抽下一题」
     if (!answer.trim()) return;
     setBusy(true);
     try {
@@ -135,8 +136,8 @@ export default function BattleScreen({ monster, onBack }: { monster: any; onBack
       </View>
 
       {/* 题目区：当前的战斗题（每刀换新句）；出身题当怪物档案小字展示 */}
-      <Text style={s.qLabel}>📜 本场战题 · {monster?.trapType}型 · 每刀换新句</Text>
-      <Text style={s.question}>{genBusy && !q ? '⚔️ 出题中…' : q}</Text>
+      <Text style={s.qLabel}>📜 本场战题 · {monster?.trapType}型 · 来自你的错题库</Text>
+      <Text style={s.question}>{q}</Text>
       <Text style={s.origin}>出身题：{monster?.question}</Text>
 
       {/* 作答区 */}
@@ -148,7 +149,7 @@ export default function BattleScreen({ monster, onBack }: { monster: any; onBack
         multiline
       />
       <TouchableOpacity style={s.btn} onPress={strike} disabled={busy}>
-        <Text style={s.btnText}>{busy ? '批改中…' : (!q ? '🔄 再出一题' : '⚔️ 挥刀')}</Text>
+        <Text style={s.btnText}>{busy ? '批改中…' : (!q ? '🎲 抽下一题' : '⚔️ 挥刀')}</Text>
       </TouchableOpacity>
 
       {/* 批改结果 */}
