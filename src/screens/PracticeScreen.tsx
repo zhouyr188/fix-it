@@ -105,6 +105,7 @@ export default function PracticeScreen({ onBack }: { onBack: () => void }) {
     if (!up) { setStarNote('这句没有升级版，收不了'); return; }
     const report = await addSentence({
       en: up,
+      zh: question,      // 中文原题——睡前翻墙时能对着中文回想英文
       note: '你的原句：' + answer,
       trapType: pickPart(result, '惯犯类型') || '无',
     });

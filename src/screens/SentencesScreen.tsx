@@ -33,6 +33,7 @@ export default function SentencesScreen({ onBack }: { onBack: () => void }) {
         sentences.map((x, i) => (
           <View style={s.card} key={x.en}>
             <Text style={s.date}>📅 {x.date} · {x.trapType}病治愈</Text>
+            {x.zh ? <Text style={s.zh}>🇨🇳 {x.zh}</Text> : null}
             <Text style={s.en}>{x.en}</Text>
             {x.note ? <Text style={s.note}>💡 {x.note}</Text> : null}
           </View>
@@ -51,6 +52,7 @@ const s = StyleSheet.create({
   empty: { fontSize: 15, color: '#999999', textAlign: 'center', marginTop: 60, lineHeight: 24 },
   card: { backgroundColor: '#ffffff', borderRadius: 12, padding: 14, marginBottom: 10 },
   date: { fontSize: 12, color: '#BBBBBB', marginBottom: 6 },
+  zh: { fontSize: 14, color: '#999999', lineHeight: 22, marginBottom: 6 },
   en: { fontSize: 16, color: '#333', lineHeight: 26 },
   note: { fontSize: 13, color: '#6A4C93', marginTop: 8, lineHeight: 20 },
 });
