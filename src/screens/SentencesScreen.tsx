@@ -6,8 +6,8 @@
 // 结构：师傅搭好的空房间 + 卡片列表（和基因库一个手艺：map 冲印）
 
 import React, { useState, useEffect } from 'react';
+import { getSentences, removeSentence } from '../data/sentences';
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
-import { getSentences } from '../data/sentences';
 
 export default function SentencesScreen({ onBack }: { onBack: () => void }) {
   const [sentences, setSentences] = useState<any[]>([]); // 从好句抽屉搬出来的全部句子
@@ -16,6 +16,11 @@ export default function SentencesScreen({ onBack }: { onBack: () => void }) {
   useEffect(() => {
     getSentences().then(setSentences);
   }, []);
+
+async function del(en: string){
+  await removeSentence(en);
+    setSentences(await getSentences());
+}
 
   return (
     <ScrollView style={s.page}>
@@ -36,6 +41,9 @@ export default function SentencesScreen({ onBack }: { onBack: () => void }) {
             {x.zh ? <Text style={s.zh}>🇨🇳 {x.zh}</Text> : null}
             <Text style={s.en}>{x.en}</Text>
             {x.note ? <Text style={s.note}>💡 {x.note}</Text> : null}
+            <TouchableOpacity style={s.delBtn} onPress={() => del(x.en)}>
+              <Text style={s.delBtnText}>🗑️ 背熟了，撤下墙</Text>
+            </TouchableOpacity>
           </View>
         ))
       )}
@@ -55,4 +63,6 @@ const s = StyleSheet.create({
   zh: { fontSize: 14, color: '#999999', lineHeight: 22, marginBottom: 6 },
   en: { fontSize: 16, color: '#333', lineHeight: 26 },
   note: { fontSize: 13, color: '#6A4C93', marginTop: 8, lineHeight: 20 },
+  delBtn: { alignSelf: 'flex-start', backgroundColor: '#F0F0F0', borderRadius: 8, paddingVertical: 4, paddingHorizontal: 10, marginTop: 10 },
+  delBtnText: { fontSize: 12, color: '#999999' },
 });
