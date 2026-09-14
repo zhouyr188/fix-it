@@ -38,6 +38,8 @@ export default function BattleScreen({ monster, onBack }: { monster: any; onBack
   const [won, setWon] = useState(false);        // 是否已消灭
   const [q, setQ] = useState('');               // 当前战题——从错题库抽（Zoey 09-12：弹药=自己的错题，不造新题）
   const [pool, setPool] = useState<any[]>([]);  // 弹药库：同类型的其他错题
+  const [giveUp, setGiveUp] = useState(false);  // 认输了吗（认输后亮出参考答案）
+  const [reveal, setReveal] = useState('');     // 认输后亮出的参考答案
 
   // ---- Animated 主演：血条的宽度（数字 0-3，映射成 0%-100%）----
   // useRef 是「跨回合记忆盒」：重渲染不会把它洗掉，动画值才连续
@@ -47,6 +49,7 @@ export default function BattleScreen({ monster, onBack }: { monster: any; onBack
   // 规则：优先打「别的」错题；全打完一轮了，最后一发回到出身题
   // 抽过的排到队尾循环用，不重复啃同一句
   async function newRound() {
+    setGiveUp(false); // 新一题重新开打，认输状态清掉
     let p = pool;
     if (p.length === 0) {
       // 进房第一次：从错题库搬同类弹药（不含出身题——它压轴）
@@ -123,6 +126,16 @@ export default function BattleScreen({ monster, onBack }: { monster: any; onBack
     setBusy(false);
   }
 
+  // ---- 认输：亮出这题的参考答案 ----
+  // 参考答案就在弹药库的卡片上（fixedVersion=当年批改的改对版）
+  // 战题 q 是「题目」文本，去弹药池+出身题里翻出它的档案
+  function surrender() {
+    const card = [monster, ...pool].find((x: any) => x && x.question === q);
+    setGiveUp(true);
+    setBattleLog('🏳️ 认输不丢人——看一遍答案，下一刀砍回来');
+    setReveal(card ? card.fixedVersion : '档案里没找到这句的答案，抽下一题吧');
+  }
+
   // 血条宽度：0-3 滴血 → 0%-100%（Animated 的翻译官 interpolate）
   const barWidth = hpAnim.interpolate({
     inputRange: [0, Math.max(nestTotal, 1)],
@@ -163,6 +176,21 @@ export default function BattleScreen({ monster, onBack }: { monster: any; onBack
         <Text style={s.btnText}>{busy ? '批改中…' : (!q ? '🎲 抽下一题' : '⚔️ 挥刀')}</Text>
       </TouchableOpacity>
 
+      {/* 认输按钮：还没认输、当前有题时才出现 */}
+      {!giveUp && q ? (
+        <TouchableOpacity style={s.giveUpBtn} onPress={surrender} disabled={busy}>
+          <Text style={s.giveUpBtnText}>🏳️ 认输，看答案</Text>
+        </TouchableOpacity>
+      ) : null}
+
+      {/* 认输后亮出的参考答案 */}
+      {giveUp ? (
+        <View style={s.revealBox}>
+          <Text style={s.revealLabel}>📖 参考答案（看熟了，按挥刀用新句砍回来）</Text>
+          <Text style={s.revealText}>{reveal}</Text>
+        </View>
+      ) : null}
+
       {/* 批改结果 */}
       {result ? <Text style={s.result}>{result}</Text> : null}
     </View>
@@ -184,6 +212,11 @@ const s = StyleSheet.create({
   origin: { fontSize: 12, color: '#667799', marginBottom: 16, lineHeight: 18 },
   input: { backgroundColor: '#fff', borderRadius: 12, padding: 16, fontSize: 16, minHeight: 100, marginBottom: 16, textAlignVertical: 'top' },
   btn: { backgroundColor: '#E94560', borderRadius: 12, padding: 14, alignItems: 'center', marginBottom: 16 },
+  giveUpBtn: { backgroundColor: '#2C3E60', borderRadius: 12, padding: 10, alignItems: 'center', marginBottom: 16 },
+  giveUpBtnText: { color: '#8899BB', fontSize: 14, fontWeight: '600' },
+  revealBox: { backgroundColor: '#16213E', borderRadius: 12, padding: 16, marginBottom: 16, borderWidth: 1, borderColor: '#2C3E60' },
+  revealLabel: { fontSize: 12, color: '#FFD56B', marginBottom: 8 },
+  revealText: { fontSize: 16, color: '#fff', lineHeight: 26 },
   btnText: { color: '#fff', fontSize: 16, fontWeight: '600' },
   result: { fontSize: 15, color: '#fff', backgroundColor: '#16213E', borderRadius: 12, padding: 16, lineHeight: 24 },
 });

@@ -5,17 +5,21 @@ import PracticeScreen from './src/screens/PracticeScreen';
 import MistakeGalleryScreen from './src/screens/MistakeGalleryScreen';
 import BattleScreen from './src/screens/BattleScreen';
 import SplashScreen from './src/screens/SplashScreen';
+import SentencesScreen from './src/screens/SentencesScreen';
 import { getMistakes } from './src/data/store';
+import { countSentences } from './src/data/sentences';
 
 export default function App() {
   const [screen, setScreen] = useState('home'); // 现在在哪个房间
   const [booted, setBooted] = useState(false);  // 开场动画演完了吗
   const [mistakeCount, setMistakeCount] = useState(0); // 抽屉里的惯犯人数
+  const [sentenceCount, setSentenceCount] = useState(0); // 好句墙上的句子数
   const [battleTarget, setBattleTarget] = useState(null); // 要挑战的怪兽档案（带着它进战斗房）
 
   // 每次回到首页，重新数一遍账本
   useEffect(() => {
     getMistakes().then((m) => setMistakeCount(m.length));
+    countSentences().then(setSentenceCount);
   }, [screen]);
 
   if (!booted) {
@@ -32,6 +36,9 @@ export default function App() {
         onBattle={(m) => { setBattleTarget(m); setScreen('battle'); }}
       />
     );
+  }
+  if (screen === 'sentences') {
+    return <SentencesScreen onBack={() => setScreen('home')} />;
   }
   if (screen === 'battle') {
     return (
@@ -61,6 +68,14 @@ export default function App() {
         <Text style={styles.menuEmoji}>🧬</Text>
         <Text style={styles.menuTitle}>错题档案（{mistakeCount}）</Text>
         <Text style={styles.menuDesc}>惯犯照片墙：按类型关押，连对三次毕业</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity
+        style={styles.menuCard}
+        onPress={() => setScreen('sentences')}>
+        <Text style={styles.menuEmoji}>🌟</Text>
+        <Text style={styles.menuTitle}>好句墙（{sentenceCount}）</Text>
+        <Text style={styles.menuDesc}>被你亲手升级过的好句子，睡前翻一翻</Text>
       </TouchableOpacity>
 
       <Text style={styles.footer}>M2 · 2026 · by Zoey</Text>

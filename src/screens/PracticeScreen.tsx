@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import { generateQuestion, gradeAnswer, explainMistake } from '../api/ai';
 import { addMistake } from '../data/store';
+import { addSentence } from '../data/sentences';
 
 function pickPart(text: string, name: string) {
   const parts = text.split('【');
@@ -40,6 +41,7 @@ export default function PracticeScreen({ onBack }: { onBack: () => void }) {
   const [err, setErr] = useState('');   //错误显示器：网页版 Alert 不弹，错误亮在这
   const [level, setLevel] = useState('');        // 当前题难度档
   const [specCheck, setSpecCheck] = useState(''); // 规格验收：词数机器数，从句数你自己数
+  const [starNote, setStarNote] = useState('');   // 收藏好句的小回执（已收藏/收过了）
 
   // ---- 第 1 步：出题（随机埋一种雷）----
   async function newQuestion() {
@@ -48,7 +50,7 @@ export default function PracticeScreen({ onBack }: { onBack: () => void }) {
     const lv = levels[Math.floor(Math.random() * levels.length)];
     setLevel(lv);
     setBusy(true); setResult(''); setAnswer('');setChecked(false);
-    setSpecCheck('');   // 新题新规格，上一题的验收条撕掉
+    setSpecCheck(''); setStarNote('');   // 新题新账：上一题的验收条和收藏回执都撕掉
     const traps = ['时态', '直译', '词形'];
     const trap = traps[Math.floor(Math.random() * traps.length)];
     try {
@@ -95,6 +97,18 @@ export default function PracticeScreen({ onBack }: { onBack: () => void }) {
       setErr("批改失败：检查网络后再试一次");
     }
     setBusy(false);
+  }
+
+  // ---- 第 4 步：收藏好句（把升级版挂上好句墙）----
+  async function starSentence() {
+    const up = pickPart(result, '升级版');
+    if (!up) { setStarNote('这句没有升级版，收不了'); return; }
+    const report = await addSentence({
+      en: up,
+      note: '你的原句：' + answer,
+      trapType: pickPart(result, '惯犯类型') || '无',
+    });
+    setStarNote(report === 'saved' ? '🌟 已挂上好句墙' : '这句已经收过了');
   }
 
   // ---- 第 3 步：讲原理（AI 讲解员）----
@@ -155,6 +169,14 @@ export default function PracticeScreen({ onBack }: { onBack: () => void }) {
       {result ? <Text style={s.result}>{result}</Text> : null}
       {specCheck ? <Text style={s.specLine}>{specCheck}</Text> : null}
 
+      {/* 收藏好句按钮：有批改结果才出现（好句=AI 给你的升级版） */}
+      {result ? (
+        <TouchableOpacity style={s.starBtn} onPress={starSentence} disabled={busy}>
+          <Text style={s.starBtnText}>🌟 收藏好句（挂上好句墙）</Text>
+        </TouchableOpacity>
+      ) : null}
+      {starNote ? <Text style={s.starNote}>{starNote}</Text> : null}
+
       {/* 讲解按钮：有批改结果才出现 */}
       {result ? (
         <TouchableOpacity style={s.explainBtn} onPress={askExplain} disabled={busy}>
@@ -186,4 +208,7 @@ const s = StyleSheet.create({
   input: { backgroundColor: '#fff', borderRadius: 12, padding: 16, fontSize: 16, minHeight: 100, marginBottom: 16, textAlignVertical: 'top' },
   result: { fontSize: 15, color: '#333', backgroundColor: '#E8F5E9', borderRadius: 12, padding: 16, lineHeight: 24 },
   specLine: { fontSize: 13, color: '#6A4C93', backgroundColor: '#F3E5F5', borderRadius: 8, padding: 10, marginBottom: 16 },
+  starBtn: { backgroundColor: '#F5A623', borderRadius: 12, padding: 12, alignItems: 'center', marginBottom: 8 },
+  starBtnText: { color: '#fff', fontSize: 15, fontWeight: '600' },
+  starNote: { fontSize: 13, color: '#2E7D32', marginBottom: 16, paddingLeft: 4 },
 });
