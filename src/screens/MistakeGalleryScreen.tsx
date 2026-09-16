@@ -10,6 +10,7 @@ import { getMistakes } from '../data/store';
 
 export default function MistakeGalleryScreen({ onBack, onBattle }: { onBack: () => void; onBattle: (m: any) => void }) {
   const [mistakes, setMistakes] = useState<any[]>([]); // 从抽屉搬出来的全部错题
+  const [zone, setZone] = useState('大厅');
 
   // 进屋先开抽屉：把档案整个搬到墙上（数人数也靠它）
   useEffect(() => {
@@ -23,7 +24,30 @@ export default function MistakeGalleryScreen({ onBack, onBattle }: { onBack: () 
       </TouchableOpacity>
       <Text style={s.title}>🧬 惯犯基因库</Text>
       <Text style={s.sub}>在押惯犯 {mistakes.length} 名 · 连对三次可毕业出库</Text>
+{zone === '大厅' && (
+  <View>
+    <TouchableOpacity style={s.doorCard} onPress={() => setZone('时态')}>
+      <Text style={s.doorTitle}>⏰ 时态馆</Text>
+      <Text style={s.doorSub}>在押 {mistakes.filter((m) => m.trapType === '时态').length} 头</Text>
+    </TouchableOpacity>
+    <TouchableOpacity style={s.doorCard} onPress={() => setZone('直译')}>
+  <Text style={s.doorTitle}>🔄 直译馆</Text>
+      <Text style={s.doorSub}>在押 {mistakes.filter((m) => m.trapType === '直译').length} 头</Text>
+    </TouchableOpacity>
+    <TouchableOpacity style={s.doorCard} onPress={() => setZone('词形')}>
+      <Text style={s.doorTitle}>🔤 词形馆</Text>
+      <Text style={s.doorSub}>在押 {mistakes.filter((m) => m.trapType === '词形').length} 头</Text>
+    </TouchableOpacity>
 
+  </View>
+)}
+
+
+{zone === '时态' && (
+  <>
+  <TouchableOpacity onPress={() => setZone('大厅')}>
+  <Text style={s.backText}>← 返回大厅</Text>
+  </TouchableOpacity>
       <Text style={s.sub}>⏰时态区 (已错 {mistakes.filter((m) => m.trapType === '时态').length} 次)</Text>
       {/* ↓ 师傅的示例：冲印机 map——把筛出来的每条时态错题各印一张卡片 */}
       {mistakes.filter((m) => m.trapType === '时态').map((m) => (
@@ -38,7 +62,14 @@ export default function MistakeGalleryScreen({ onBack, onBattle }: { onBack: () 
           </TouchableOpacity>
         </View>
       ))}
+  </>
+)}
 
+{zone === '直译' && (
+  <>
+  <TouchableOpacity onPress={() => setZone('大厅')}>
+  <Text style={s.backText}>← 返回大厅</Text>
+  </TouchableOpacity>
       <Text style={s.sub}>🔄直译区 (已错 {mistakes.filter((m) => m.trapType === '直译').length} 次)</Text>
       {mistakes.filter((m) => m.trapType === '直译').map((m) => (
         <View style={s.card} key={m.date + m.userAnswer}>
@@ -52,7 +83,14 @@ export default function MistakeGalleryScreen({ onBack, onBattle }: { onBack: () 
           </TouchableOpacity>
         </View>
       ))}
+</>
+)}
 
+{zone ==='词形' && (
+  <>
+  <TouchableOpacity onPress={() => setZone('大厅')}>
+  <Text style={s.backText}>← 返回大厅</Text>
+  </TouchableOpacity>
       <Text style={s.sub}>🔤词形区 (已错 {mistakes.filter((m) => m.trapType === '词形').length} 次)</Text>
       {mistakes.filter((m) => m.trapType ==='词形').map((m) => (
         <View style={s.card} key={m.date + m.userAnswer}>
@@ -66,7 +104,8 @@ export default function MistakeGalleryScreen({ onBack, onBattle }: { onBack: () 
           </TouchableOpacity>
         </View>
       ))}
-
+      </>
+)}
       {/* 弹药预告：mistakes.filter(筛类型).map(印卡片) —— 周三开工 */}
       {mistakes.length === 0 ? (
         <Text style={s.empty}>抽屉是空的——先去「交作业」攒几个惯犯吧</Text>
@@ -91,4 +130,8 @@ const s = StyleSheet.create({
   fix: { fontSize: 14, color: '#2E7D32', marginTop: 4 },
   battleBtn: { alignSelf: 'flex-start', backgroundColor: '#E85D3D', borderRadius: 8, paddingVertical: 6, paddingHorizontal: 12, marginTop: 10 },
   battleBtnText: { color: '#fff', fontSize: 13, fontWeight: '600' },
+  doorCard: { backgroundColor: '#ffffff', borderRadius: 12, padding: 18, marginBottom: 12, borderLeftWidth: 4, borderLeftColor: '#E85D3D' },
+doorTitle: { fontSize: 18, fontWeight: 'bold', color: '#E85D3D' },
+doorSub: { fontSize: 13, color: '#888888', marginTop: 4 },
+
 });
