@@ -8,7 +8,7 @@ import React, { useState } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView,
 } from 'react-native';
-import { generateQuestion, gradeAnswer, explainMistake } from '../api/ai';
+import { generateQuestion, gradeAnswer, explainMistake, normalizeTrap } from '../api/ai';
 import { addMistake } from '../data/store';
 import { addSentence } from '../data/sentences';
 
@@ -81,9 +81,10 @@ export default function PracticeScreen({ onBack }: { onBack: () => void }) {
         setSpecCheck(`📏 规格验收｜${level}档要求：${LEVEL_SPECS[level] ?? ''}｜改对版共 ${wordCount} 词`);
       }
 
-    const trap = pickPart(g, '惯犯类型');
-   
-      if (trap !== '无' && trap !== '') {
+    // 门卫二号上岗：类型先验脸，三张脸之外的回答（如 AI 吐英文长段）一律按「无」——不许入库
+    const trap = normalizeTrap(pickPart(g, '惯犯类型'));
+
+      if (trap !== '无') {
         await addMistake({
           question: question,
           userAnswer: answer,
@@ -107,7 +108,7 @@ export default function PracticeScreen({ onBack }: { onBack: () => void }) {
       en: up,
       zh: question,      // 中文原题——睡前翻墙时能对着中文回想英文
       note: '你的原句：' + answer,
-      trapType: pickPart(result, '惯犯类型') || '无',
+      trapType: normalizeTrap(pickPart(result, '惯犯类型')),
     });
     setStarNote(report === 'saved' ? '🌟 已挂上好句墙' : '这句已经收过了');
   }

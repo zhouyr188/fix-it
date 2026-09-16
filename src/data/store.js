@@ -17,7 +17,15 @@ const MISTAKES_KEY = 'fixit_mistakes'; // 错题档案的抽屉名
 // ------------------------------------------------------------
 export async function getMistakes() {
   const raw = await AsyncStorage.getItem(MISTAKES_KEY);
-  return raw ? JSON.parse(raw) : [];
+  const mistakes = raw ? JSON.parse(raw) : [];
+  // 大扫除（2026-09-16）：早年 AI 跑偏时混进抽屉的「幽灵惯犯」——
+  // 类型不是时态/直译/词形，哪馆都关不住，只会在大厅计数里虚报人数。
+  // 开抽屉时顺手请它们出去，抽屉当场重写干净（名单和 ai.js 门卫二号同源）。
+  const clean = mistakes.filter((m) => ['时态', '直译', '词形'].includes(m.trapType));
+  if (clean.length !== mistakes.length) {
+    await AsyncStorage.setItem(MISTAKES_KEY, JSON.stringify(clean));
+  }
+  return clean;
 }
 
 // ------------------------------------------------------------
