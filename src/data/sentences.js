@@ -8,7 +8,7 @@
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const SENTENCES_KEY = 'fixit_sentences'; // 好句抽屉的抽屉名
+export const SENTENCES_KEY = 'fixit_sentences'; // 好句抽屉的抽屉名（搬家工人 backup.js 也要认得这名字）
 
 // ------------------------------------------------------------
 // 读取全部好句

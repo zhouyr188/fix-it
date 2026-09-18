@@ -7,7 +7,7 @@
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const MISTAKES_KEY = 'fixit_mistakes'; // 错题档案的抽屉名
+export const MISTAKES_KEY = 'fixit_mistakes'; // 错题档案的抽屉名（搬家工人 backup.js 也要认得这名字）
 
 // ------------------------------------------------------------
 // 读取全部错题
