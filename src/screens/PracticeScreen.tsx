@@ -11,6 +11,7 @@ import {
 import { generateQuestion, gradeAnswer, explainMistake, normalizeTrap } from '../api/ai';
 import { addMistake } from '../data/store';
 import { addSentence } from '../data/sentences';
+import { recordPractice } from '../data/checkin';
 
 function pickPart(text: string, name: string) {
   const parts = text.split('【');
@@ -42,6 +43,7 @@ export default function PracticeScreen({ onBack }: { onBack: () => void }) {
   const [level, setLevel] = useState('');        // 当前题难度档
   const [specCheck, setSpecCheck] = useState(''); // 规格验收：词数机器数，从句数你自己数
   const [starNote, setStarNote] = useState('');   // 收藏好句的小回执（已收藏/收过了）
+  const [checkinNote, setCheckinNote] = useState(''); // 打卡小回执（今日 N/3、亮灯💡）
 
   // ---- 第 1 步：出题（随机埋一种雷）----
   async function newQuestion() {
@@ -50,7 +52,7 @@ export default function PracticeScreen({ onBack }: { onBack: () => void }) {
     const lv = levels[Math.floor(Math.random() * levels.length)];
     setLevel(lv);
     setBusy(true); setResult(''); setAnswer('');setChecked(false);
-    setSpecCheck(''); setStarNote('');   // 新题新账：上一题的验收条和收藏回执都撕掉
+    setSpecCheck(''); setStarNote(''); setCheckinNote('');   // 新题新账：上一题的验收条、收藏回执、打卡回执都撕掉
     const traps = ['时态', '直译', '词形'];
     const trap = traps[Math.floor(Math.random() * traps.length)];
     try {
@@ -93,6 +95,10 @@ export default function PracticeScreen({ onBack }: { onBack: () => void }) {
           trapType: trap,
         });
       }
+
+      // 打卡钩子：交一题记一笔，满 3 题今天自动亮灯（2026-09-11 约定兑现）
+      const lightUp = await recordPractice();
+      setCheckinNote(lightUp);
 
     } catch (e) {
       setErr("批改失败：检查网络后再试一次");
@@ -178,6 +184,7 @@ export default function PracticeScreen({ onBack }: { onBack: () => void }) {
         </TouchableOpacity>
       ) : null}
       {starNote ? <Text style={s.starNote}>{starNote}</Text> : null}
+      {checkinNote ? <Text style={s.checkinNote}>{checkinNote}</Text> : null}
 
       {/* 讲解按钮：有批改结果才出现 */}
       {result ? (
@@ -213,4 +220,5 @@ const s = StyleSheet.create({
   starBtn: { backgroundColor: '#F5A623', borderRadius: 12, padding: 12, alignItems: 'center', marginBottom: 8 },
   starBtnText: { color: '#fff', fontSize: 15, fontWeight: '600' },
   starNote: { fontSize: 13, color: '#2E7D32', marginBottom: 16, paddingLeft: 4 },
+  checkinNote: { fontSize: 13, color: '#B8860B', marginBottom: 16, paddingLeft: 4 },
 });
