@@ -12,7 +12,7 @@ export default {
   expo: {
     name: 'Fix It',
     slug: 'gfj',
-    version: '1.1.0',
+    version: '1.0.0',
     orientation: 'portrait',
     icon: './assets/icon.png',
     userInterfaceStyle: 'light',
