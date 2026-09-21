@@ -62,6 +62,10 @@ export default function MistakeGalleryScreen({ onBack, onBattle }: { onBack: () 
           </TouchableOpacity>
         </View>
       ))}
+      {mistakes.filter((m) => m.trapType === '时态').length === 0 && (
+      <Text style={s.empty}>这个馆是空的，先去别的馆逛逛
+      </Text>
+  )}
   </>
 )}
 
@@ -83,6 +87,10 @@ export default function MistakeGalleryScreen({ onBack, onBattle }: { onBack: () 
           </TouchableOpacity>
         </View>
       ))}
+      {mistakes.filter((m) => m.trapType === '直译').length === 0 && (
+      <Text style={s.empty}>这个馆是空的，先去别的馆逛逛
+      </Text>
+  )}
 </>
 )}
 
@@ -104,7 +112,11 @@ export default function MistakeGalleryScreen({ onBack, onBattle }: { onBack: () 
           </TouchableOpacity>
         </View>
       ))}
-      </>
+      {mistakes.filter((m) => m.trapType === '词形').length === 0 && (
+      <Text style={s.empty}>这个馆是空的，先去别的馆逛逛
+      </Text>
+  )}
+   </>
 )}
       {/* 弹药预告：mistakes.filter(筛类型).map(印卡片) —— 周三开工 */}
       {mistakes.length === 0 ? (
