@@ -27,6 +27,7 @@ export default function BackupScreen({ onBack }: { onBack: () => void }) {
     try {
       const t = await buildBackup();
       setBoxText(t);
+      setReport('📦箱子已打包装上屏幕--记得下载或复制收好');
     } catch (e) {
       setErr('打包失败：' + String(e));
     }
