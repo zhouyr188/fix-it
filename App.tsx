@@ -7,6 +7,7 @@ import BattleScreen from './src/screens/BattleScreen';
 import SplashScreen from './src/screens/SplashScreen';
 import SentencesScreen from './src/screens/SentencesScreen';
 import BackupScreen from './src/screens/BackupScreen';
+import HelpScreen from './src/screens/HelpScreen';
 import { getMistakes } from './src/data/store';
 import { countSentences } from './src/data/sentences';
 
@@ -44,6 +45,9 @@ export default function App() {
   if (screen === 'backup') {
     return <BackupScreen onBack={() => setScreen('home')} />;
   }
+  if (screen === 'help') {
+    return <HelpScreen onBack={() => setScreen('home')} />;
+  }
   if (screen === 'battle') {
     return (
       <BattleScreen
@@ -55,6 +59,11 @@ export default function App() {
 
   return (
     <View style={styles.container}>
+      {/* 右上角🧭角标：怎么玩（指南针，迷路了来查，不拦路）——emoji 由 Zoey 定稿 */}
+      <TouchableOpacity style={styles.cornerBtn} onPress={() => setScreen('help')}>
+        <Text style={styles.cornerText}>🧭</Text>
+      </TouchableOpacity>
+
       <Text style={styles.title}>🔧 Fix It</Text>
       <Text style={styles.subtitle}>你的口袋英语批改员</Text>
 
@@ -104,6 +113,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     padding: 24,
   },
+  cornerBtn: { position: 'absolute', top: 16, right: 16, padding: 8 },
+  cornerText: { fontSize: 22 },
   title: {
     fontSize: 32,
     fontWeight: 'bold',
