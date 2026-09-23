@@ -10,6 +10,7 @@ import BackupScreen from './src/screens/BackupScreen';
 import HelpScreen from './src/screens/HelpScreen';
 import { getMistakes } from './src/data/store';
 import { countSentences } from './src/data/sentences';
+import CheckinScreen from './src/screens/CheckinScreen';
 
 export default function App() {
   const [screen, setScreen] = useState('home'); // 现在在哪个房间
@@ -56,12 +57,18 @@ export default function App() {
       />
     );
   }
-
+  if (screen === 'checkin') { return <CheckinScreen onBack={() => setScreen('home')} />; }
   return (
+
+
     <View style={styles.container}>
       {/* 右上角🧭角标：怎么玩（指南针，迷路了来查，不拦路）——emoji 由 Zoey 定稿 */}
       <TouchableOpacity style={styles.cornerBtn} onPress={() => setScreen('help')}>
         <Text style={styles.cornerText}>🧭</Text>
+      </TouchableOpacity>
+      {/* 左上角📅角标：打卡墙——墙的肉周五装 */}
+      <TouchableOpacity style={styles.cornerLeft} onPress={() => setScreen('checkin')}>
+        <Text style={styles.cornerText}>📅</Text>
       </TouchableOpacity>
 
       <Text style={styles.title}>🔧 Fix It</Text>
@@ -114,6 +121,7 @@ const styles = StyleSheet.create({
     padding: 24,
   },
   cornerBtn: { position: 'absolute', top: 16, right: 16, padding: 8 },
+  cornerLeft:{ position: 'absolute', top: 16, left: 16, padding: 8},
   cornerText: { fontSize: 22 },
   title: {
     fontSize: 32,
@@ -121,6 +129,7 @@ const styles = StyleSheet.create({
     color: '#FF7B54',
     marginBottom: 8,
   },
+
   subtitle: {
     fontSize: 16,
     color: '#888888',
