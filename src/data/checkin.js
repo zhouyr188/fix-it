@@ -45,7 +45,7 @@ export async function recordPractice(){
 }
 
 
-function countStreak(days){
+export function countStreak(days){
     let streak = 0;
     const d = new Date();
 

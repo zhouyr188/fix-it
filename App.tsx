@@ -87,7 +87,7 @@ export default function App() {
         onPress={() => setScreen('gallery')}>
         <Text style={styles.menuEmoji}>🧬</Text>
         <Text style={styles.menuTitle}>错题档案（{mistakeCount}）</Text>
-        <Text style={styles.menuDesc}>惯犯照片墙：按类型关押，连对三次毕业</Text>
+        <Text style={styles.menuDesc}>惯犯照片墙：按类型关押，答对一个毕业一个</Text>
       </TouchableOpacity>
 
       <TouchableOpacity
@@ -106,7 +106,7 @@ export default function App() {
         <Text style={styles.menuDesc}>打包家当搬家，换设备数据不丢</Text>
       </TouchableOpacity>
 
-      <Text style={styles.footer}>M2 · 2026 · by Zoey</Text>
+      <Text style={styles.footer}>v1.0 · 2026 · by Zoey</Text>
       <StatusBar style="auto" />
     </View>
   );
