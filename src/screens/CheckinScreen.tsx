@@ -10,6 +10,12 @@ export default function CheckinScreen({ onBack }: { onBack: () => void }) {
   }, []);
 
   const streak = countStreak(days);
+  const now = new Date();
+  const cells = [];//这个月的全部格子：0=垫片，数字=日期
+  const firstDay = new Date(now.getFullYear(),now.getMonth(), 1);
+  const daysInMonth = new Date(now.getFullYear(),now.getMonth() +1, 0).getDate();
+  for(let i = 0;i < firstDay.getDay(); i++)cells.push(0);
+  for(let d = 1;d <= daysInMonth; d++)cells.push(d);
   return (
     <ScrollView style={s.page}>
       <TouchableOpacity onPress={onBack} style={s.backBtn}>
@@ -18,6 +24,23 @@ export default function CheckinScreen({ onBack }: { onBack: () => void }) {
       <Text style={s.title}>📅 打卡墙</Text>
       <Text style={s.streak}>🔥 连续坚持 {streak} 天</Text>
       <Text style={s.sub}>每天交满3题，当天打卡自动点亮</Text>
+     <View style={s.weekRow}>
+        {['日','一','二','三','四','五','六'].map((w) => (
+            <Text key={w} style={s.weekText}>{w}</Text>
+        ))}
+     </View>
+     <View style={s.wall}>
+        {cells.map((d) => {
+            const key = now.getFullYear() + '-' + (now.getMonth() +1) + '-' + d;
+            const lit = d > 0 && days.includes(key);
+            const today = d === now.getDate();
+            return(
+                <View key={d} style={[s.grid, d === 0 && s.gridBlank, lit && s.gridLit, today && s.gridToday]}>
+                    <Text style={s.gridText}>{d > 0 ? d : ''}</Text>
+                    </View>
+            );
+        })}
+     </View>
     </ScrollView>
   );
 }
@@ -29,4 +52,12 @@ const s = StyleSheet.create({
   title: { fontSize: 22, fontWeight: 'bold', color: '#E85D3D', marginBottom: 4 },
   sub: { fontSize: 14, color: '#888888' },
   streak:{ fontSize: 26, fontWeight: 'bold', color: '#B8860B', marginBottom: 4 },
+  wall: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 8 },
+  grid: { width: '13.2%', aspectRatio: 1, backgroundColor: '#E8E4DC', borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
+  gridBlank: { backgroundColor: 'transparent' },
+  weekRow: { flexDirection: 'row', gap: 6, marginTop: 12 },
+  weekText: { width: '13.2%', textAlign: 'center', color: '#999999', fontSize: 13 },
+  gridLit: { backgroundColor: '#FFD56B' },
+  gridToday: { borderWidth: 2, borderColor: '#E85D3D' },
+  gridText: { fontSize: 16, color: '#666666' },
 });
