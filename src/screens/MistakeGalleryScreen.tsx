@@ -129,7 +129,7 @@ export default function MistakeGalleryScreen({ onBack, onBattle }: { onBack: () 
 
 const s = StyleSheet.create({
   page: { flex: 1, backgroundColor: '#FFF8F0', padding: 20 },
-  backBtn: { alignSelf: 'flex-start', marginBottom: 8 },
+  backBtn: { alignSelf: 'flex-start', marginBottom: 4, paddingVertical: 10, paddingHorizontal: 12, marginLeft: -12 },
   backText: { fontSize: 15, color: '#E85D3D' },
   title: { fontSize: 22, fontWeight: 'bold', color: '#E85D3D', marginBottom: 4 },
   sub: { fontSize: 14, color: '#888888', marginBottom: 16 },

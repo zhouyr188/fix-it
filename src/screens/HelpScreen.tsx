@@ -49,7 +49,7 @@ export default function HelpScreen({ onBack }: { onBack: () => void }) {
 
 const s = StyleSheet.create({
   page: { flex: 1, backgroundColor: '#FFF8F0', padding: 20 },
-  backBtn: { alignSelf: 'flex-start', marginBottom: 8 },
+  backBtn: { alignSelf: 'flex-start', marginBottom: 4, paddingVertical: 10, paddingHorizontal: 12, marginLeft: -12 },
   backText: { fontSize: 15, color: '#E85D3D' },
   title: { fontSize: 20, fontWeight: 'bold', color: '#E85D3D', marginBottom: 8 },
   intro: { fontSize: 14, color: '#666666', lineHeight: 22, marginBottom: 16 },

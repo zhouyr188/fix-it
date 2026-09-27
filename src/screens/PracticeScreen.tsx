@@ -208,7 +208,7 @@ const s = StyleSheet.create({
   explainBtnText: { color: '#fff', fontSize: 15, fontWeight: '600' },
   explain: { fontSize: 15, color: '#333', backgroundColor: '#FFF3E0', borderRadius: 12, padding: 16, lineHeight: 26 },
   page: { flex: 1, backgroundColor: '#FFF8F0', padding: 20 },
-  backBtn: { alignSelf: 'flex-start', marginBottom: 8 },
+  backBtn: { alignSelf: 'flex-start', marginBottom: 4, paddingVertical: 10, paddingHorizontal: 12, marginLeft: -12 },
   backText: { fontSize: 15, color: '#E85D3D' },
   title: { fontSize: 22, fontWeight: 'bold', color: '#E85D3D', marginBottom: 16 },
   btn: { backgroundColor: '#E85D3D', borderRadius: 12, padding: 14, alignItems: 'center', marginBottom: 16 },

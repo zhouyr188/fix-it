@@ -199,7 +199,7 @@ export default function BattleScreen({ monster, onBack }: { monster: any; onBack
 
 const s = StyleSheet.create({
   page: { flex: 1, backgroundColor: '#1A1A2E', padding: 20 },
-  backBtn: { alignSelf: 'flex-start', marginBottom: 8 },
+  backBtn: { alignSelf: 'flex-start', marginBottom: 4, paddingVertical: 10, paddingHorizontal: 12, marginLeft: -12 },
   backText: { fontSize: 15, color: '#E85D3D' },
   monsterStage: { backgroundColor: '#16213E', borderRadius: 16, padding: 20, alignItems: 'center', marginBottom: 16 },
   face: { fontSize: 56, marginBottom: 8 },
