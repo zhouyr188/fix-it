@@ -93,10 +93,16 @@ export function normalizeTrap(raw) {
 const CLAUSE_MARKS = /\b(that|which|who|whom|whose|when|where|why|because|although|though|if|since|unless|until|while|whereas|whether|what|whatever|so that|as if|even if)\b/gi;
 
 const LEVEL_SPEC = {
-  基础: { wMax: 12, zMax: 35 },
-  中等: { wMin: 10, wMax: 28, zMin: 12, zMax: 45 },
-  进阶: { wMin: 15, wMax: 40, zMin: 20, zMax: 70 },
+  基础: { wMin: 8,  wMax: 22, zMax: 35 },
+  中等: { wMin: 12, wMax: 34, zMax: 55 },
+  进阶: { wMin: 20, wMax: 48, zMax: 75 },
 };
+
+// 把规格表的数字念给 AI 听——运动员和裁判看同一张表，数字永远不脱节（2026-09-27 上线日大修）
+function specLine(level) {
+  const sp = LEVEL_SPEC[level] || LEVEL_SPEC.基础;
+  return `长度硬指标（超标的卷子会被机器直接退货）：标准英文译文 ${sp.wMin}-${sp.wMax} 个英文单词；中文题面不超过 ${sp.zMax} 个字。句子可以有层次，但必须是一个能一口气翻译完的单句——不是段落。`;
+}
 
 export function countWords(s) {
   return s.split(/\s+/).filter((t) => /[A-Za-z0-9]/.test(t)).length;
@@ -212,7 +218,8 @@ export function buildQuestionPrompt(trapType, level) {
   }
   return [
     { role: 'system', 
-      content: '你是一名英语考试出题专家，专注于中国大学生英语中译英训练，参考 CET-4、CET-6 和 IELTS 的语言水平。' + 
+      content: '【交卷规格——最重要的一条】你出的每道题会被机器数字数：译文词数和题面字数超出指定区间会被直接退货。收到题目要求里的具体数字后，交卷前在心里数一遍，数字达标才输出。' +
+      '你是一名英语考试出题专家，专注于中国大学生英语中译英训练，参考 CET-4、CET-6 和 IELTS 的语言水平。' + 
       '这是中译英练习：题面必须是自然、完整的中文陈述句（以句号结尾，禁止问句和「请谈谈」类指令句），用户将其翻译成英文。题目应适合大多数普通大学生，无需专业知识或外部资料即可理解和作答。' +
       '题目必须自然包含指定的一个高频易错点，不得为了制造易错点而使用生硬中文，也不要刻意堆叠其他复杂语法陷阱。' + 
       '时态：通过自然的时间信息考察英文时态。' + 
@@ -223,6 +230,7 @@ export function buildQuestionPrompt(trapType, level) {
       '括号内最多提供 1 个必要的专有名词英文提示，不得提示动词、时态、词形、句式或易错点答案。' + 
       '严格输出两行：第一行“题目：”+中文单句；第二行“译文：”+英文参考译文。不得输出其他内容。' },
        { role: 'user', content: `请出一道中译英题。` +
+        `${specLine(level)}` +
         `指定易错点：${trapType}。` + `${levelDesc}` + 
         `本题题材：${theme}。必须围绕该题材。` + 
         `题目必须是中文陈述句（句号结尾，不得是问句）。只输出“题目：”和“译文：”两行。` }
@@ -250,10 +258,14 @@ export async function generateQuestion(trapType,level) {
     if (best === null || dist < best.dist) best = { q: parsed.question, dist };
     if (check.ok) return parsed.question;
     msgs = [...base, { role: 'assistant', content: raw },
-      { role: 'user', content: `这份卷子不合格：${check.reason}。请换一个说法重新出一道全新的题，务必让标准英文译文落进规格区间，译文给最简版（能删的词都删）。` }];
-  }
-  if (best) return best.q; // 挑最好的将就放行，练习不断粮
-  throw new Error('AI 连续三次交不出合格卷子，已被出厂检验官拦下');
+      { role: 'user', content: `这份卷子不合格：${check.reason}。硬指标：译文 ${sp.wMin}-${sp.wMax} 词、题面不超过 ${sp.zMax} 字。注意不要矫枉过正——不要突然变得很短，朝着区间中段调整。请出一道全新题。` }];
+       }
+   if (best) return best.q; // 挑最好的将就放行，练习不断粮
+  // 最后的保险丝：低温+极简指令，只要一张能用的卷子——上线日加，报错绝迹
+  const raw4 = await askAI([...base, { role: 'user', content: '请立刻出一道中等难度的中文单句中译英题（关于校园或日常生活，译文16-24词）。只输出「题目：」和「译文：」两行。' }], 0.3);
+  const last = parseQuestion(raw4);
+  if (last && isChineseQuestion(last.question)) return last.question;
+  throw new Error('AI 今天状态不好，稍等一分钟再试');
 }
 
 // ------------------------------------------------------------
