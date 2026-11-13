@@ -5,8 +5,14 @@
 //   App 里的代码读不到 .env（那是给电脑上的脚本用的），
 //   这里的任务是把钥匙转交给 App：构建时读 .env → 塞进 extra。
 //   .env 被 .gitignore 拦着，所以钥匙永远只在你本机。
+//
+// 2026-11-09 变化：网页版改走 Cloudflare 中转站（relay/），
+//   钥匙挪进 Worker，网页包里不许再出现钥匙。
+//   判断「这次是不是在给网页打包」用环境变量 APP_WEB_BUILD=1
+//   （deploy-web.sh 里设了它）；手机端构建不带这个变量，照旧直连。
 
 const zhipuKey = process.env.ZHIPU_API_KEY || '';
+const isWebBuild = process.env.APP_WEB_BUILD === '1';
 
 export default {
   expo: {
@@ -21,7 +27,8 @@ export default {
     web: { favicon: './assets/favicon.png' },
     extra: {
       eas: { projectId: '8a8394a1-07f3-44e1-b507-a390c22369d7' },
-      zhipuKey: zhipuKey,
+      // 网页打包：空串（钥匙在 Worker 口袋里）；手机打包：真钥匙
+      zhipuKey: isWebBuild ? '' : zhipuKey,
     },
     owner: 'zoey188s-team',
   },

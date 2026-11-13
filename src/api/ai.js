@@ -7,20 +7,35 @@
 
 const ZHIPU_URL = 'https://open.bigmodel.cn/api/paas/v4/chat/completions';
 
-// 你的钥匙从环境变量读（.env 文件），不写死在代码里
-// —— 这样代码可以放心上传 GitHub，钥匙永远留在本机
+// ------------------------------------------------------------
+// 2026-11-09 修网页版出不了题：
+//   浏览器从 github.io 直连智谱会被门卫（CORS）拦下（手机 App 不受影响）。
+//   解法：网页版改走「传话小妹」（Cloudflare Worker 中转站），
+//   钥匙也挪进小妹口袋（Worker 环境变量），网页包里不再出现钥匙。
+//   手机 App 继续直连智谱，一行逻辑不变。
+// ------------------------------------------------------------
+import { Platform } from 'react-native';
 import Constants from 'expo-constants';
 const API_KEY = Constants.expoConfig?.extra?.zhipuKey || '';
+const RELAY_URL = 'https://fixit-relay.zhouyr188.workers.dev/api';
+
+// 是网页版吗？（手机 App 返回 ios/android，网页返回 web）
+export const IS_WEB = Platform.OS === 'web';
+
+// 出题时实际喊的地址：网页→传话小妹；手机→智谱本部
+const AI_URL = IS_WEB ? RELAY_URL : ZHIPU_URL;
 
 // ------------------------------------------------------------
 // 通用请求函数：发一条消息给 AI，拿回回复文本
 // ------------------------------------------------------------
 async function askAI(messages, temperature = 0.7) {
-  const response = await fetch(ZHIPU_URL, {
+  const response = await fetch(AI_URL, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      Authorization: `Bearer ${API_KEY}`,
+      // 网页版走传话小妹：钥匙在她口袋里，这里不用带；
+      // 手机版直连智谱：钥匙还像以前一样带上
+      ...(IS_WEB ? {} : { Authorization: `Bearer ${API_KEY}` }),
     },
     body: JSON.stringify({
       model: 'glm-4-flash',
